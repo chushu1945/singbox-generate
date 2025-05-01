@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singbox 配置生成器 - Nord 主题</title>
+    <!-- TailwindCSS via CDN -->
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <!-- Font Awesome via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(76, 86, 106, 0.5); border-radius: 20px; border: transparent; } /* polar-night-4 */
+        .dark ::-webkit-scrollbar-thumb { background-color: rgba(216, 222, 233, 0.5); } /* snow-storm-1 */
+
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+        /* Nord-themed JSON Syntax Highlighting */
+        /* Light Mode */
+        .json-key { color: #5e81ac; }    /* Frost Dark Blue */
+        .json-string { color: #d08770; } /* Aurora Orange */
+        .json-number { color: #a3be8c; } /* Aurora Green */
+        .json-boolean { color: #b48ead; }/* Aurora Purple */
+        .json-null { color: #b48ead; }   /* Aurora Purple */
+        /* Dark Mode */
+        .dark .json-key { color: #88c0d0; }    /* Frost Light Blue */
+        .dark .json-string { color: #d08770; } /* Aurora Orange */
+        .dark .json-number { color: #a3be8c; } /* Aurora Green */
+        .dark .json-boolean { color: #b48ead; }/* Aurora Purple */
+        .dark .json-null { color: #b48ead; }   /* Aurora Purple */
+
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+    <script>
+        // --- Tailwind Configuration ---
+        tailwind.config = {
+            darkMode: 'class', // Enable class strategy
+            theme: {
+                extend: {
+                    colors: {
+                        // Nord Palette Definition
+                        // Polar Night (Dark Backgrounds/Text)
+                        'polar-night-1': '#2e3440', // Darkest
+                        'polar-night-2': '#3b4252',
+                        'polar-night-3': '#434c5e',
+                        'polar-night-4': '#4c566a', // Lightest Dark
+                        // Snow Storm (Light Backgrounds/Text)
+                        'snow-storm-1': '#d8dee9', // Darkest Light
+                        'snow-storm-2': '#e5e9f0',
+                        'snow-storm-3': '#eceff4', // Lightest
+                        // Frost (Accents)
+                        'frost-1': '#8fbcbb', // Teal
+                        'frost-2': '#88c0d0', // Light Blue
+                        'frost-3': '#81a1c1', // Medium Blue
+                        'frost-4': '#5e81ac', // Dark Blue
+                        // Aurora (Specific Accents)
+                        'aurora-red': '#bf616a',
+                        'aurora-orange': '#d08770',
+                        'aurora-yellow': '#ebcb8b',
+                        'aurora-green': '#a3be8c',
+                        'aurora-purple': '#b48ead',
+                    }
+                }
+            }
+        }
+
+        // --- Dark Mode Initial Setup ---
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="bg-snow-storm-3 dark:bg-polar-night-1 text-polar-night-1 dark:text-snow-storm-3 font-sans transition-colors duration-300 ease-in-out">
+
+    <div class="min-h-screen flex flex-col">
+        <header class="sticky top-0 z-10 bg-snow-storm-2/90 dark:bg-polar-night-2/90 backdrop-blur-sm shadow-sm border-b border-snow-storm-1/50 dark:border-polar-night-4/50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-polar-night-1 dark:text-snow-storm-3">Singbox 配置生成器</h1>
+                <button id="theme-toggle" type="button" class="text-polar-night-4 dark:text-snow-storm-1 hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 focus:outline-none focus:ring-4 focus:ring-frost-3/50 dark:focus:ring-frost-2/50 rounded-lg text-sm p-2.5 transition duration-150 ease-in-out">
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col lg:flex-row gap-8">
+
+                <!-- Left Column: Configuration -->
+                <div class="lg:w-1/2 space-y-6 fade-in">
+                    <section class="bg-snow-storm-2 dark:bg-polar-night-2 rounded-lg shadow-md p-6 transition duration-150 ease-in-out hover:shadow-lg dark:hover:border dark:border-transparent dark:hover:border-frost-2/30">
+                        <h2 class="text-lg font-semibold mb-4 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2 text-polar-night-1 dark:text-snow-storm-3">1. 选择协议</h2>
+                        <div id="protocol-selector" class="flex flex-wrap gap-4">
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="hysteria2" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2" checked>
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">Hysteria2</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="tuic" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2">
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">TUIC v5</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="anytls" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2">
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">AnyTLS</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="vless-reality" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2">
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">VLESS Reality</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="trojan" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2">
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">Trojan</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 transition duration-150 ease-in-out">
+                                <input type="radio" name="protocol" value="vmess" class="form-radio text-frost-4 dark:text-frost-2 focus:ring-frost-4 dark:focus:ring-frost-2 focus:ring-offset-snow-storm-2 dark:focus:ring-offset-polar-night-2">
+                                <span class="text-sm font-medium text-polar-night-2 dark:text-snow-storm-1">VMess</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="bg-snow-storm-2 dark:bg-polar-night-2 rounded-lg shadow-md p-6 transition duration-150 ease-in-out hover:shadow-lg dark:hover:border dark:border-transparent dark:hover:border-frost-2/30">
+                        <h2 class="text-lg font-semibold mb-4 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2 text-polar-night-1 dark:text-snow-storm-3">2. 填写配置</h2>
+                        <form id="config-form" class="space-y-4">
+                            <div>
+                                <label for="listen_port" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">监听端口</label>
+                                <input type="number" id="listen_port" name="listen_port" value="443" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 443">
+                            </div>
+
+                            <div id="hysteria2-fields" class="space-y-4">
+                                <div>
+                                    <label for="hy2_up_mbps" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">上行速度 (Mbps)</label>
+                                    <input type="number" id="hy2_up_mbps" name="hy2_up_mbps" value="50" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 50">
+                                </div>
+                                <div>
+                                    <label for="hy2_down_mbps" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">下行速度 (Mbps)</label>
+                                    <input type="number" id="hy2_down_mbps" name="hy2_down_mbps" value="200" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 200">
+                                </div>
+                                <div>
+                                    <label for="hy2_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="hy2_password" name="hy2_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                        <button type="button" id="generate-hy2-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="tuic-fields" class="space-y-4 hidden">
+                                <div>
+                                    <label for="tuic_uuid" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">用户 UUID (留空则自动生成)</label>
+                                     <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="tuic_uuid" name="tuic_uuid" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                        <button type="button" id="generate-tuic-uuid" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="tuic_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="tuic_password" name="tuic_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成强密码">
+                                         <button type="button" id="generate-tuic-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="anytls-fields" class="space-y-4 hidden">
+                                <div>
+                                    <label for="anytls_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (域名)</label>
+                                    <input type="text" id="anytls_server_name" name="anytls_server_name" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: yourdomain.com">
+                                </div>
+                                <div>
+                                    <label for="anytls_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                     <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="anytls_password" name="anytls_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                        <button type="button" id="generate-anytls-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vless-reality-fields" class="space-y-4 hidden">
+                                <div>
+                                    <label for="vless_uuid" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">用户 UUID (留空则自动生成)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="vless_uuid" name="vless_uuid" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                        <button type="button" id="generate-vless-uuid" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="vless_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (SNI)</label>
+                                    <select id="vless_server_name" name="vless_server_name" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out">
+                                        <option value="www.icloud.com" selected>www.icloud.com</option>
+                                        <option value="icloud.cdn-apple.com">icloud.cdn-apple.com</option>
+                                        <option value="www.speedtest.org">www.speedtest.org</option>
+                                        <option value="addons.mozilla.org">addons.mozilla.org</option>
+                                        <option value="www.speedtest.net">www.speedtest.net</option>
+                                        <option value="www.lovelive-anime.jp">www.lovelive-anime.jp</option>
+                                        <option value="swdist.apple.com">swdist.apple.com</option>
+                                        <option value="blog.api.www.cloudflare.com">blog.api.www.cloudflare.com</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="vless_private_key" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Reality 私钥 (sing-box generate reality-keypair)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="vless_private_key" name="vless_private_key" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成私钥">
+                                        <button type="button" id="generate-vless-keypair" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成 Reality 密钥对">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="vless_short_id" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Short ID (sing-box generate rand 8 --hex)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="vless_short_id" name="vless_short_id" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 Short ID">
+                                        <button type="button" id="generate-vless-short-id" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 Short ID">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="trojan-fields" class="space-y-4 hidden">
+                                <div>
+                                    <label for="trojan_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="trojan_password" name="trojan_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成强密码">
+                                        <button type="button" id="generate-trojan-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vmess-fields" class="space-y-4 hidden">
+                                <div>
+                                    <label for="vmess_uuid" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">用户 UUID (留空则自动生成)</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <input type="text" id="vmess_uuid" name="vmess_uuid" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                        <button type="button" id="generate-vmess-uuid" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
+                                            <i class="fas fa-dice"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="vmess_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (自定义域名)</label>
+                                    <input type="text" id="vmess_server_name" name="vmess_server_name" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: yourdomain.com">
+                                </div>
+                                <div>
+                                    <label for="vmess_path" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">WebSocket 路径 (自定义路径)</label>
+                                    <input type="text" id="vmess_path" name="vmess_path" value="/ws" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: /mypath">
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-snow-storm-1 dark:border-polar-night-4 space-y-4">
+                                <h3 class="text-base font-medium text-polar-night-1 dark:text-snow-storm-3">TLS 设置</h3>
+                                <div>
+                                    <label for="certificate_path" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">证书路径</label>
+                                    <input type="text" id="certificate_path" name="certificate_path" value="/home/ssl/public.pem" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out">
+                                </div>
+                                <div>
+                                    <label for="key_path" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">私钥路径</label>
+                                    <input type="text" id="key_path" name="key_path" value="/home/ssl/private.key" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out">
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+                <!-- Right Column: JSON Output -->
+                <div class="lg:w-1/2 space-y-6 fade-in" style="animation-delay: 0.1s;">
+                    <section class="bg-snow-storm-2 dark:bg-polar-night-2 rounded-lg shadow-md p-6 h-full flex flex-col transition duration-150 ease-in-out hover:shadow-lg dark:hover:border dark:border-transparent dark:hover:border-frost-2/30">
+                        <div class="flex justify-between items-center mb-4 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2 gap-x-4">
+                            <h2 class="text-lg font-semibold text-polar-night-1 dark:text-snow-storm-3">3. 生成的配置 (JSON)</h2>
+                            <div class="flex gap-x-2">
+                                <button id="copy-button" class="px-3 py-1.5 text-sm font-medium text-snow-storm-3 dark:text-polar-night-1 bg-frost-4 hover:bg-frost-3 dark:bg-frost-2 dark:hover:bg-frost-1 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-frost-4 dark:focus:ring-frost-2 dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
+                                    <i class="fas fa-copy"></i>
+                                    <span>复制</span>
+                                </button>
+                                <button id="download-button" class="px-3 py-1.5 text-sm font-medium text-polar-night-1 dark:text-polar-night-1 bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-aurora-green dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
+                                    <i class="fas fa-download"></i>
+                                    <span>下载</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-grow bg-snow-storm-1 dark:bg-polar-night-3 p-4 rounded-md overflow-auto">
+                            <pre><code id="json-output" class="text-sm font-mono"></code></pre>
+                        </div>
+                    </section>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="mt-12 py-4 bg-snow-storm-2 dark:bg-polar-night-2 border-t border-snow-storm-1 dark:border-polar-night-4">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-polar-night-4 dark:text-snow-storm-1">
+                作者: AP | 版权所有 &copy; <span id="current-year"></span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- UTILITY FUNCTIONS ---
+        function generateUUID() {
+            var d = new Date().getTime();
+            var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now()*1000)) || 0;
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16;
+                if(d > 0){
+                    r = (d + r)%16 | 0;
+                    d = Math.floor(d/16);
+                } else {
+                    r = (d2 + r)%16 | 0;
+                    d2 = Math.floor(d2/16);
+                }
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+        function generateStrongPassword(length = 16) {
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+            let password = "";
+            for (let i = 0, n = charset.length; i < length; ++i) {
+                password += charset.charAt(Math.floor(Math.random() * n));
+            }
+            return password;
+        }
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') {
+                 json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'json-number'; // Default class
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // --- DOM ELEMENTS ---
+        const protocolSelector = document.getElementById('protocol-selector');
+        const configForm = document.getElementById('config-form');
+        const jsonOutput = document.getElementById('json-output');
+        const copyButton = document.getElementById('copy-button');
+        const downloadButton = document.getElementById('download-button');
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const currentYearSpan = document.getElementById('current-year');
+        const hy2Fields = document.getElementById('hysteria2-fields');
+        const tuicFields = document.getElementById('tuic-fields');
+        const anytlsFields = document.getElementById('anytls-fields');
+        const vlessRealityFields = document.getElementById('vless-reality-fields');
+        const trojanFields = document.getElementById('trojan-fields');
+        const vmessFields = document.getElementById('vmess-fields');
+        const listenPortInput = document.getElementById('listen_port');
+        const certPathInput = document.getElementById('certificate_path');
+        const keyPathInput = document.getElementById('key_path');
+        const hy2PasswordInput = document.getElementById('hy2_password');
+        const tuicUuidInput = document.getElementById('tuic_uuid');
+        const tuicPasswordInput = document.getElementById('tuic_password');
+        const anytlsPasswordInput = document.getElementById('anytls_password');
+        const anytlsServerNameInput = document.getElementById('anytls_server_name');
+        const vlessUuidInput = document.getElementById('vless_uuid');
+        const vlessServerNameInput = document.getElementById('vless_server_name');
+        const vlessPrivateKeyInput = document.getElementById('vless_private_key');
+        const vlessShortIdInput = document.getElementById('vless_short_id');
+        const trojanPasswordInput = document.getElementById('trojan_password');
+        const vmessUuidInput = document.getElementById('vmess_uuid');
+        const vmessServerNameInput = document.getElementById('vmess_server_name');
+        const vmessPathInput = document.getElementById('vmess_path');
+
+        // --- GLOBAL STATE ---
+        let currentConfig = {};
+
+        // --- THEME TOGGLE LOGIC ---
+        const updateThemeIcons = () => {
+            if (!themeToggleLightIcon || !themeToggleDarkIcon) return;
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                themeToggleLightIcon.classList.add('hidden');
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+        };
+        themeToggleButton.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            updateThemeIcons();
+        });
+
+        // --- FORM LOGIC ---
+        function updateFormVisibility() {
+            const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+            hy2Fields.classList.add('hidden');
+            tuicFields.classList.add('hidden');
+            anytlsFields.classList.add('hidden');
+            vlessRealityFields.classList.add('hidden');
+            trojanFields.classList.add('hidden');
+            vmessFields.classList.add('hidden');
+            if (selectedProtocol === 'hysteria2') hy2Fields.classList.remove('hidden');
+            else if (selectedProtocol === 'tuic') tuicFields.classList.remove('hidden');
+            else if (selectedProtocol === 'anytls') anytlsFields.classList.remove('hidden');
+            else if (selectedProtocol === 'vless-reality') vlessRealityFields.classList.remove('hidden');
+            else if (selectedProtocol === 'trojan') trojanFields.classList.remove('hidden');
+            else if (selectedProtocol === 'vmess') vmessFields.classList.remove('hidden');
+        }
+        function generateConfig() {
+            const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+            const port = parseInt(listenPortInput.value) || 443;
+            const certPath = certPathInput.value || '/home/ssl/public.pem';
+            const keyPath = keyPathInput.value || '/home/ssl/private.key';
+            let config = {};
+
+            try {
+                if (selectedProtocol === 'hysteria2') {
+                    const upMbps = parseInt(document.getElementById('hy2_up_mbps').value) || 50;
+                    const downMbps = parseInt(document.getElementById('hy2_down_mbps').value) || 200;
+                    const password = hy2PasswordInput.value || generateUUID();
+                    if (!hy2PasswordInput.value) hy2PasswordInput.value = password;
+                    config = { inbounds: [ { type: "hysteria2", listen: "::", listen_port: port, up_mbps: upMbps, down_mbps: downMbps, users: [ { password: password } ], tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
+                } else if (selectedProtocol === 'tuic') {
+                    const uuid = tuicUuidInput.value || generateUUID();
+                    const password = tuicPasswordInput.value || generateStrongPassword();
+                    if (!tuicUuidInput.value) tuicUuidInput.value = uuid;
+                    if (!tuicPasswordInput.value) tuicPasswordInput.value = password;
+                    config = { inbounds: [ { type: "tuic", listen: "::", listen_port: port, users: [ { uuid: uuid, password: password } ], congestion_control: "bbr", tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
+                } else if (selectedProtocol === 'anytls') {
+                    const serverName = anytlsServerNameInput.value || 'yourdomain.com';
+                    const password = anytlsPasswordInput.value || generateUUID();
+                    if (!anytlsServerNameInput.value) anytlsServerNameInput.value = serverName;
+                    if (!anytlsPasswordInput.value) anytlsPasswordInput.value = password;
+                    config = { inbounds: [ { type: "anytls", listen: "::", listen_port: port, users: [ { password: password } ], tls: { enabled: true, server_name: serverName, certificate_path: certPath, key_path: keyPath } } ] };
+                } else if (selectedProtocol === 'vless-reality') {
+                    const uuid = vlessUuidInput.value || generateUUID();
+                    const serverName = vlessServerNameInput.value || 'www.icloud.com';
+                    const privateKey = vlessPrivateKeyInput.value || generateStrongPassword(43); // 模拟生成私钥，实际应使用 sing-box generate reality-keypair
+                    const shortId = vlessShortIdInput.value || generateStrongPassword(8).toLowerCase().replace(/[^0-9a-f]/g, ''); // 模拟生成 Short ID
+                    if (!vlessUuidInput.value) vlessUuidInput.value = uuid;
+                    if (!vlessPrivateKeyInput.value) vlessPrivateKeyInput.value = privateKey;
+                    if (!vlessShortIdInput.value) vlessShortIdInput.value = shortId;
+                    config = {
+                        inbounds: [{
+                            type: "vless",
+                            listen: "::",
+                            listen_port: port,
+                            users: [{ uuid: uuid, flow: "xtls-rprx-vision" }],
+                            tls: {
+                                enabled: true,
+                                server_name: serverName,
+                                reality: {
+                                    enabled: true,
+                                    handshake: {
+                                        server: serverName,
+                                        server_port: 443
+                                    },
+                                    private_key: privateKey,
+                                    short_id: [shortId]
+                                }
+                            }
+                        }]
+                    };
+                } else if (selectedProtocol === 'trojan') {
+                    const password = trojanPasswordInput.value || generateStrongPassword();
+                    if (!trojanPasswordInput.value) trojanPasswordInput.value = password;
+                    config = {
+                        inbounds: [{
+                            type: "trojan",
+                            listen: "::",
+                            listen_port: port,
+                            users: [{ password: password }],
+                            tls: {
+                                enabled: true,
+                                certificate_path: certPath,
+                                key_path: keyPath
+                            },
+                            multiplex: {
+                                enabled: true
+                            }
+                        }]
+                    };
+                } else if (selectedProtocol === 'vmess') {
+                    const uuid = vmessUuidInput.value || generateUUID();
+                    const serverName = vmessServerNameInput.value || '';
+                    const path = vmessPathInput.value || '/ws';
+                    if (!vmessUuidInput.value) vmessUuidInput.value = uuid;
+                    config = {
+                        inbounds: [{
+                            type: "vmess",
+                            listen: "::",
+                            listen_port: port,
+                            users: [{ uuid: uuid, alterId: 0 }],
+                            tag: "vmess-inbound",
+                            transport: {
+                                type: "ws",
+                                path: path
+                            },
+                            tls: {
+                                enabled: true,
+                                server_name: serverName,
+                                certificate_path: certPath,
+                                key_path: keyPath
+                            }
+                        }]
+                    };
+                }
+                currentConfig = config;
+                jsonOutput.innerHTML = syntaxHighlight(currentConfig);
+                jsonOutput.classList.remove('text-aurora-red'); // Use specific error color if needed
+            } catch (error) {
+                console.error("Error generating config:", error);
+                currentConfig = {};
+                jsonOutput.textContent = `配置生成错误: ${error.message}`;
+                jsonOutput.classList.add('text-aurora-red'); // Use Aurora Red for errors
+            }
+            return currentConfig;
+        }
+
+        // --- EVENT LISTENERS ---
+        protocolSelector.addEventListener('change', () => { updateFormVisibility(); generateConfig(); });
+        configForm.addEventListener('input', generateConfig);
+        document.getElementById('generate-hy2-password').addEventListener('click', () => { hy2PasswordInput.value = generateUUID(); generateConfig(); });
+        document.getElementById('generate-tuic-uuid').addEventListener('click', () => { tuicUuidInput.value = generateUUID(); generateConfig(); });
+        document.getElementById('generate-tuic-password').addEventListener('click', () => { tuicPasswordInput.value = generateStrongPassword(); generateConfig(); });
+        document.getElementById('generate-anytls-password').addEventListener('click', () => { anytlsPasswordInput.value = generateUUID(); generateConfig(); });
+        document.getElementById('generate-vless-uuid').addEventListener('click', () => { vlessUuidInput.value = generateUUID(); generateConfig(); });
+        document.getElementById('generate-vless-keypair').addEventListener('click', () => { vlessPrivateKeyInput.value = generateStrongPassword(43); generateConfig(); });
+        document.getElementById('generate-vless-short-id').addEventListener('click', () => { vlessShortIdInput.value = generateStrongPassword(8).toLowerCase().replace(/[^0-9a-f]/g, ''); generateConfig(); });
+        document.getElementById('generate-trojan-password').addEventListener('click', () => { trojanPasswordInput.value = generateStrongPassword(); generateConfig(); });
+        document.getElementById('generate-vmess-uuid').addEventListener('click', () => { vmessUuidInput.value = generateUUID(); generateConfig(); });
+
+        // Copy Button Listener
+        copyButton.addEventListener('click', () => {
+            const configText = JSON.stringify(currentConfig, null, 2);
+            if (!configText || configText === '{}') { alert('没有可复制的配置。'); return; }
+            navigator.clipboard.writeText(configText).then(() => {
+                const originalHTML = copyButton.innerHTML;
+                const originalClasses = copyButton.className;
+                copyButton.innerHTML = '<i class="fas fa-check mr-1"></i> 已复制!';
+                copyButton.className = originalClasses.replace(/bg-frost-\d+|hover:bg-frost-\d+|dark:bg-frost-\d+|dark:hover:bg-frost-\d+/g, '') + ' bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 text-polar-night-1 dark:text-polar-night-1';
+                setTimeout(() => {
+                    copyButton.innerHTML = originalHTML;
+                    copyButton.className = originalClasses;
+                }, 2000);
+            }).catch(err => { console.error('无法复制文本: ', err); alert('复制失败! 请手动复制。'); });
+        });
+
+        // Download Button Listener
+        downloadButton.addEventListener('click', () => {
+            const configToDownload = currentConfig;
+            const configText = JSON.stringify(configToDownload, null, 2);
+            if (!configText || configText === '{}') { alert('没有可下载的配置。'); return; }
+            const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+            const port = listenPortInput.value || 'port';
+            const filename = `${selectedProtocol}-${port}.json`;
+            const blob = new Blob([configText], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else { alert('您的浏览器不支持自动下载。请手动复制配置。'); }
+        });
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            currentYearSpan.textContent = new Date().getFullYear();
+            updateThemeIcons();
+            updateFormVisibility();
+            generateConfig();
+        });
+    </script>
+</body>
+</html>
