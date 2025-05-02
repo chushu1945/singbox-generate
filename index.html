@@ -109,7 +109,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
                 <h1 class="text-xl font-semibold text-polar-night-1 dark:text-snow-storm-3">Singbox 配置生成器</h1>
                 <button id="theme-toggle" type="button" class="text-polar-night-4 dark:text-snow-storm-1 hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 focus:outline-none focus:ring-4 focus:ring-frost-3/50 dark:focus:ring-frost-2/50 rounded-lg text-sm p-2.5 transition duration-150 ease-in-out">
-                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                     <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
                 </button>
             </div>
@@ -245,18 +245,16 @@
                                         <input type="text" id="vless_private_key" name="vless_private_key" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="输入您的 Reality 私钥">
                                          <!-- Note: Cannot reliably generate keypair in JS -->
                                     </div>
-                                    <p class="mt-1 text-xs text-polar-night-4 dark:text-snow-storm-1">请使用 `sing-box generate reality-keypair` 命令生成密钥对。</p>
                                 </div>
                                 <!-- New field for Public Key needed for export link -->
-                                <div id="vless-public-key-field" class="hidden">
+                                <div id="vless-public-key-field" class="space-y-4 hidden"> <!-- Added space-y-4 here for consistency -->
                                     <label for="vless_public_key" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Reality 公钥 (用于导出链接)</label>
                                     <input type="text" id="vless_public_key" name="vless_public_key" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="输入与私钥对应的公钥">
-                                    <p class="mt-1 text-xs text-polar-night-4 dark:text-snow-storm-1">这是从私钥派生出来的公钥，用于生成客户端订阅链接。</p>
                                 </div>
                                 <div>
                                     <label for="vless_short_id" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Short ID (sing-box generate rand 8 --hex)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="text" id="vless_short_id" name="vless_short_id" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 Short ID (8位十六进制)">
+                                        <input type="text" id="vless_short_id" name="vless_short_id" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 Short ID (8位十六进制)" value="">
                                         <button type="button" id="generate-vless-short-id" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 Short ID (8位十六进制)">
                                             <i class="fas fa-dice"></i>
                                         </button>
@@ -570,20 +568,65 @@
             // Show fields for the selected protocol
             if (selectedProtocol === 'hysteria2') {
                 hy2Fields.classList.remove('hidden');
+                 // Auto-generate password if empty
+                 if (!hy2PasswordInput.value) {
+                     hy2PasswordInput.value = generateUUID();
+                 }
             } else if (selectedProtocol === 'tuic') {
                 tuicFields.classList.remove('hidden');
+                 // Auto-generate UUID and password if empty
+                 if (!tuicUuidInput.value) {
+                     tuicUuidInput.value = generateUUID();
+                 }
+                 if (!tuicPasswordInput.value) {
+                     tuicPasswordInput.value = generateUUID();
+                 }
             } else if (selectedProtocol === 'anytls') {
                 anytlsFields.classList.remove('hidden');
+                 // Auto-generate password if empty
+                 if (!anytlsPasswordInput.value) {
+                     anytlsPasswordInput.value = generateUUID();
+                 }
+                 // server_name is required, but don't auto-fill a placeholder domain
+                 // if (!anytlsServerNameInput.value) {
+                 //    anytlsServerNameInput.value = 'yourdomain.com';
+                 // }
             } else if (selectedProtocol === 'vless-reality') {
                  vlessRealityFields.classList.remove('hidden');
                  certKeyFields.classList.add('hidden'); // Hide standard TLS fields for Reality
                  vlessPublicKeyField.classList.remove('hidden'); // Show Public Key field for export link
+
+                 // Auto-generate UUID if empty
+                 if (!vlessUuidInput.value) {
+                     vlessUuidInput.value = generateUUID();
+                 }
+                 // --- ADDED: Auto-generate Short ID if empty for VLESS Reality ---
+                 if (!vlessShortIdInput.value) {
+                     vlessShortIdInput.value = generateHexString(8).toLowerCase();
+                 }
+                 // --- END ADDED ---
+
             }
             else if (selectedProtocol === 'trojan') {
                 trojanFields.classList.remove('hidden');
+                 // Auto-generate password if empty
+                 if (!trojanPasswordInput.value) {
+                     trojanPasswordInput.value = generateAlphanumericPassword(16);
+                 }
             }
             else if (selectedProtocol === 'vmess') {
                 vmessFields.classList.remove('hidden');
+                 // Auto-generate UUID if empty
+                 if (!vmessUuidInput.value) {
+                     vmessUuidInput.value = generateUUID();
+                 }
+                 // server_name (Host/SNI) and path are required, but don't auto-fill arbitrary values other than default /ws
+                 // if (!vmessServerNameInput.value) {
+                 //    vmessServerNameInput.value = '';
+                 // }
+                 // if (!vmessPathInput.value) {
+                 //    vmessPathInput.value = '/ws'; // Has a default value in HTML already
+                 // }
             }
 
             // Ensure the remark field is always visible as it's common for export links
@@ -603,38 +646,36 @@
                 if (selectedProtocol === 'hysteria2') {
                     const upMbps = parseInt(document.getElementById('hy2_up_mbps').value) || 50;
                     const downMbps = parseInt(document.getElementById('hy2_down_mbps').value) || 200;
-                    const password = hy2PasswordInput.value || generateUUID(); // HY2 password is UUID
-                    if (!hy2PasswordInput.value) hy2PasswordInput.value = password; // Update input if auto-generated
+                    // Get value directly from the input field (which is now auto-filled)
+                    const password = hy2PasswordInput.value;
+                    if (!password) throw new Error("Hysteria2 密码不能为空"); // Ensure it's not empty
                     config = { inbounds: [ { type: "hysteria2", listen: "::", listen_port: port, up_mbps: upMbps, down_mbps: downMbps, users: [ { password: password } ], tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'tuic') {
-                    const uuid = tuicUuidInput.value || generateUUID();
-                    const password = tuicPasswordInput.value || generateUUID(); // TUIC password is UUID v5
-                    if (!tuicUuidInput.value) tuicUuidInput.value = uuid; // Update input if auto-generated
-                    if (!tuicPasswordInput.value) tuicPasswordInput.value = password; // Update input if auto-generated
+                    // Get values directly from the input fields (which are now auto-filled)
+                    const uuid = tuicUuidInput.value;
+                    const password = tuicPasswordInput.value;
+                    if (!uuid || !password) throw new Error("TUIC UUID 或密码不能为空"); // Ensure they are not empty
                     config = { inbounds: [ { type: "tuic", listen: "::", listen_port: port, users: [ { uuid: uuid, password: password } ], congestion_control: "bbr", tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'anytls') {
-                    const serverName = anytlsServerNameInput.value || 'yourdomain.com'; // Used for peer in client link, server_name in config
-                    const password = anytlsPasswordInput.value || generateUUID(); // AnyTLS password is UUID
-                    if (!anytlsServerNameInput.value) anytlsServerNameInput.value = serverName; // Update input if auto-generated (less likely for server name)
-                    if (!anytlsPasswordInput.value) anytlsPasswordInput.value = password; // Update input if auto-generated
+                    // Get values directly from the input fields (password is now auto-filled)
+                    const password = anytlsPasswordInput.value;
+                    const serverName = anytlsServerNameInput.value.trim();
+                    if (!password || !serverName) throw new Error("AnyTLS 密码或服务器名称不能为空"); // Ensure they are not empty
                     config = { inbounds: [ { type: "anytls", listen: "::", listen_port: port, users: [ { password: password } ], tls: { enabled: true, server_name: serverName, certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'vless-reality') {
-                    const uuid = vlessUuidInput.value || generateUUID();
+                    // Get values directly from the input fields (UUID and Short ID are now auto-filled)
+                    const uuid = vlessUuidInput.value;
                     const serverName = vlessServerNameInput.value || 'www.icloud.com';
                     const privateKey = vlessPrivateKeyInput.value.trim(); // Don't auto-generate private key
-                    const shortId = vlessShortIdInput.value || generateHexString(8).toLowerCase(); // 8-char hex
-
-                    if (!vlessUuidInput.value) vlessUuidInput.value = uuid; // Update input if auto-generated
-                     if (!vlessShortIdInput.value) vlessShortIdInput.value = shortId; // Update input if auto-generated
-
+                    const shortId = vlessShortIdInput.value.trim(); // Get Short ID directly from input
 
                     // Basic validation for Reality fields needed for config
-                    if (!privateKey) {
-                         throw new Error("Reality 私钥不能为空。");
-                    }
-                     // Short ID is required by Reality
-                    if (!shortId) {
-                        throw new Error("Reality Short ID 不能为空。");
+                    if (!uuid || !privateKey || !shortId) { // UUID and Short ID are now required for config
+                         const missing = [];
+                         if (!uuid) missing.push("用户 UUID");
+                         if (!privateKey) missing.push("Reality 私钥");
+                         if (!shortId) missing.push("Short ID");
+                         throw new Error(`VLESS Reality 缺少必要信息: ${missing.join(', ')}`);
                     }
 
                     config = {
@@ -653,14 +694,15 @@
                                         server_port: 443 // Target server port for handshake
                                     },
                                     private_key: privateKey,
-                                    short_id: [shortId]
+                                    short_id: [shortId] // Use the value from the input field
                                 }
                             }
                         }]
                     };
                 } else if (selectedProtocol === 'trojan') {
-                    const password = trojanPasswordInput.value || generateAlphanumericPassword(16); // Trojan password is 16-char alphanumeric
-                    if (!trojanPasswordInput.value) trojanPasswordInput.value = password; // Update input if auto-generated
+                    // Get value directly from the input field (which is now auto-filled)
+                    const password = trojanPasswordInput.value;
+                    if (!password) throw new Error("Trojan 密码不能为空"); // Ensure it's not empty
                     config = {
                         inbounds: [{
                             type: "trojan",
@@ -678,10 +720,12 @@
                         }]
                     };
                 } else if (selectedProtocol === 'vmess') {
-                    const uuid = vmessUuidInput.value || generateUUID();
+                    // Get value directly from the input field (UUID is now auto-filled)
+                    const uuid = vmessUuidInput.value;
                     const serverName = vmessServerNameInput.value.trim(); // SNI/Host
-                    const path = vmessPathInput.value || '/ws';
-                    if (!vmessUuidInput.value) vmessUuidInput.value = uuid; // Update input if auto-generated
+                    const path = vmessPathInput.value || '/ws'; // Has default value
+                    if (!uuid || !serverName) throw new Error("VMess UUID 或服务器名称(SNI/Host)不能为空"); // Ensure required fields are not empty
+
 
                     // VMess config uses the values directly
                     config = {
@@ -704,6 +748,14 @@
                         }]
                     };
                 }
+
+                // Check required TLS paths unless it's Reality
+                if (selectedProtocol !== 'vless-reality') {
+                     if (!certPath) throw new Error("证书路径不能为空");
+                     if (!keyPath) throw new Error("私钥路径不能为空");
+                }
+
+
                 currentConfig = config;
                 // console.log('Generated Config:', currentConfig); // Debugging log
                 jsonOutput.innerHTML = syntaxHighlight(currentConfig);
@@ -819,20 +871,20 @@
                  try {
                      if (selectedProtocol === 'hysteria2') {
                          const password = inbound.users[0]?.password;
-                         if (!password) throw new Error("HY2 密码缺失");
+                         if (!password) throw new Error("HY2 密码缺失"); // Should not happen with auto-fill
                           link = `hysteria2://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?alpn=h3&insecure=1#${encodedRemark}`;
 
                      } else if (selectedProtocol === 'tuic') {
                          const uuid = inbound.users[0]?.uuid;
                          const password = inbound.users[0]?.password;
-                         if (!uuid || !password) throw new Error("TUIC UUID 或密码缺失");
+                         if (!uuid || !password) throw new Error("TUIC UUID 或密码缺失"); // Should not happen with auto-fill
                           // Use the port from the main form
                          link = `tuic://${encodeURIComponent(uuid)}:${encodeURIComponent(password)}@${encodedDomainIp}:${port}?alpn=h3&allow_insecure=1&congestion_control=bbr#${encodedRemark}`;
 
                      } else if (selectedProtocol === 'anytls') {
                          const password = inbound.users[0]?.password;
                          const peer = inbound.tls?.server_name; // peer in link comes from server_name in config
-                         if (!password || !peer) throw new Error("AnyTLS 密码或服务器名称缺失");
+                         if (!password || !peer) throw new Error("AnyTLS 密码或服务器名称缺失"); // Should not happen with auto-fill/validation
                           // Use the port from the main form
                          link = `anytls://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?peer=${encodeURIComponent(peer)}&udp=1#${encodedRemark}`;
 
@@ -840,14 +892,16 @@
                           const uuid = inbound.users[0]?.uuid;
                           const sni = inbound.tls?.server_name; // SNI comes from server_name in config
                           const publicKey = vlessPublicKeyInput.value.trim(); // Public key is from the separate input field
-                          const shortId = inbound.tls?.reality?.short_id?.[0]; // Short ID from config array
+                          // Get Short ID directly from the input field (which is now auto-filled)
+                          const shortId = vlessShortIdInput.value.trim();
+
 
                           if (!uuid || !sni || !publicKey || !shortId) {
                               const missing = [];
                               if (!uuid) missing.push("UUID");
                               if (!sni) missing.push("SNI");
                               if (!publicKey) missing.push("公钥 (用于导出)"); // Emphasize public key is needed for link
-                              if (!shortId) missing.push("Short ID");
+                              if (!shortId) missing.push("Short ID"); // Short ID is required *for the link*
                               throw new Error(`VLESS Reality 缺少必要信息: ${missing.join(', ')}`);
                           }
 
@@ -858,7 +912,7 @@
 
                      } else if (selectedProtocol === 'trojan') {
                          const password = inbound.users[0]?.password;
-                         if (!password) throw new Error("Trojan 密码缺失");
+                         if (!password) throw new Error("Trojan 密码缺失"); // Should not happen with auto-fill
                          // Use the port from the main form
                          link = `trojan://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?type=tcp&security=tls&allowInsecure=1#${encodedRemark}`;
 
@@ -871,7 +925,7 @@
                          // 'host' is the WS Host header (from config serverName)
                          // 'sni' is the TLS SNI (from config serverName)
 
-                         if (!uuid) throw new Error("VMess UUID 缺失");
+                         if (!uuid || !serverName) throw new Error("VMess UUID 或服务器名称(SNI/Host)缺失"); // Should not happen with auto-fill/validation
                          // serverName might be optional for some VMess configs, but required for WS+TLS link often.
                          // If serverName is empty in config, use the modal domain/IP for host/sni in the link JSON.
                          const linkHost = serverName || domainIp; // Use config serverName if present, else modal domain/IP
@@ -980,7 +1034,11 @@
 
 
         // --- EVENT LISTENERS ---
-        protocolSelector.addEventListener('change', () => { updateFormVisibility(); generateConfig(); });
+        protocolSelector.addEventListener('change', () => {
+             updateFormVisibility();
+             // After updating visibility and potentially auto-filling fields, generate config
+             generateConfig();
+        });
         // Listen for input changes on the form to regenerate config
         configForm.addEventListener('input', generateConfig);
 
@@ -992,7 +1050,13 @@
         document.getElementById('generate-vless-uuid').addEventListener('click', () => { vlessUuidInput.value = generateUUID(); generateConfig(); });
          // Note: Cannot reliably generate keypair in JS. Short ID generation is hex.
         // document.getElementById('generate-vless-keypair').addEventListener('click', () => { /* Logic needed if implemented */ });
-        document.getElementById('generate-vless-short-id').addEventListener('click', () => { vlessShortIdInput.value = generateHexString(8).toLowerCase(); generateConfig(); });
+
+        // MODIFICATION: Generate Short ID and populate the input field ONLY when the button is clicked
+        document.getElementById('generate-vless-short-id').addEventListener('click', () => {
+            vlessShortIdInput.value = generateHexString(8).toLowerCase();
+            generateConfig(); // Regenerate config after populating the field
+        });
+
         document.getElementById('generate-trojan-password').addEventListener('click', () => { trojanPasswordInput.value = generateAlphanumericPassword(16); generateConfig(); }); // Trojan password is 16-char alphanumeric
         document.getElementById('generate-vmess-uuid').addEventListener('click', () => { vmessUuidInput.value = generateUUID(); generateConfig(); });
 
@@ -1097,7 +1161,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             currentYearSpan.textContent = new Date().getFullYear();
             updateThemeIcons(); // Set initial theme icons
-            updateFormVisibility(); // Show fields for default selected protocol
+            // MODIFIED: Ensure initial visibility update also triggers UUID/Short ID generation if needed
+            updateFormVisibility(); // Show fields for default selected protocol (Hysteria2 by default)
+            // Generate initial config AFTER form visibility is updated
             generateConfig(); // Generate initial config on load
         });
     </script>
