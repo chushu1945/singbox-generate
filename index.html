@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
     <!-- Font Awesome via CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -37,6 +39,29 @@
         .dark .json-null { color: #b48ead; }   /* Aurora Purple */
 
         pre { white-space: pre-wrap; word-wrap: break-word; }
+
+        /* Modal specific styles */
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
+        .dark .modal-overlay { background-color: rgba(0, 0, 0, 0.8); }
+
+        /* Custom colors for dynamic use in JS (for QR code) */
+         /* Define base colors first */
+        :root {
+            --polar-night-1: #2e3440;
+            --polar-night-3: #434c5e;
+            --snow-storm-3: #eceff4;
+
+            /* QR code colors for light mode */
+            --qrcode-dark: var(--polar-night-1);   /* Dots color */
+            --qrcode-light: var(--snow-storm-3);  /* Background color - now modal background */
+        }
+         /* Override QR code colors for dark mode */
+        .dark:root {
+            --qrcode-dark: var(--snow-storm-3);   /* Dots color */
+            --qrcode-light: var(--polar-night-2); /* Background color - now modal background */
+        }
+
+
     </style>
     <script>
         // --- Tailwind Configuration ---
@@ -45,7 +70,7 @@
             theme: {
                 extend: {
                     colors: {
-                        // Nord Palette Definition
+                        // Nord Palette Definition (also referenced by --var above)
                         // Polar Night (Dark Backgrounds/Text)
                         'polar-night-1': '#2e3440', // Darkest
                         'polar-night-2': '#3b4252',
@@ -72,6 +97,7 @@
         }
 
         // --- Dark Mode Initial Setup ---
+        // On page load or when changing themes, best to add inline to avoid flashing
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark')
         } else {
@@ -135,6 +161,7 @@
                                 <input type="number" id="listen_port" name="listen_port" value="443" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 443">
                             </div>
 
+                            <!-- Protocol Specific Fields -->
                             <div id="hysteria2-fields" class="space-y-4">
                                 <div>
                                     <label for="hy2_up_mbps" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">上行速度 (Mbps)</label>
@@ -145,10 +172,10 @@
                                     <input type="number" id="hy2_down_mbps" name="hy2_down_mbps" value="200" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 200">
                                 </div>
                                 <div>
-                                    <label for="hy2_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <label for="hy2_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成 UUID)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
                                         <input type="text" id="hy2_password" name="hy2_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
-                                        <button type="button" id="generate-hy2-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                        <button type="button" id="generate-hy2-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
                                             <i class="fas fa-dice"></i>
                                         </button>
                                     </div>
@@ -166,10 +193,10 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="tuic_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <label for="tuic_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成 UUID)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="text" id="tuic_password" name="tuic_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成强密码">
-                                         <button type="button" id="generate-tuic-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                        <input type="text" id="tuic_password" name="tuic_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
+                                         <button type="button" id="generate-tuic-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
                                             <i class="fas fa-dice"></i>
                                         </button>
                                     </div>
@@ -178,14 +205,14 @@
 
                             <div id="anytls-fields" class="space-y-4 hidden">
                                 <div>
-                                    <label for="anytls_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (域名)</label>
+                                    <label for="anytls_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (peer)</label>
                                     <input type="text" id="anytls_server_name" name="anytls_server_name" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: yourdomain.com">
                                 </div>
                                 <div>
-                                    <label for="anytls_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <label for="anytls_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成 UUID)</label>
                                      <div class="mt-1 relative rounded-md shadow-sm">
                                         <input type="text" id="anytls_password" name="anytls_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 UUID">
-                                        <button type="button" id="generate-anytls-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                        <button type="button" id="generate-anytls-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 UUID">
                                             <i class="fas fa-dice"></i>
                                         </button>
                                     </div>
@@ -203,7 +230,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="vless_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (SNI)</label>
+                                    <label for="vless_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (SNI/目标服务器)</label>
                                     <select id="vless_server_name" name="vless_server_name" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out">
                                         <option value="www.icloud.com" selected>www.icloud.com</option>
                                         <option value="icloud.cdn-apple.com">icloud.cdn-apple.com</option>
@@ -218,17 +245,22 @@
                                 <div>
                                     <label for="vless_private_key" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Reality 私钥 (sing-box generate reality-keypair)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="text" id="vless_private_key" name="vless_private_key" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成私钥">
-                                        <button type="button" id="generate-vless-keypair" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成 Reality 密钥对">
-                                            <i class="fas fa-dice"></i>
-                                        </button>
+                                        <input type="text" id="vless_private_key" name="vless_private_key" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="输入您的 Reality 私钥">
+                                         <!-- Note: Cannot reliably generate keypair in JS -->
                                     </div>
+                                    <p class="mt-1 text-xs text-polar-night-4 dark:text-snow-storm-1">请使用 `sing-box generate reality-keypair` 命令生成密钥对。</p>
+                                </div>
+                                <!-- New field for Public Key needed for export link -->
+                                <div id="vless-public-key-field" class="hidden">
+                                    <label for="vless_public_key" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Reality 公钥 (用于导出链接)</label>
+                                    <input type="text" id="vless_public_key" name="vless_public_key" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="输入与私钥对应的公钥">
+                                    <p class="mt-1 text-xs text-polar-night-4 dark:text-snow-storm-1">这是从私钥派生出来的公钥，用于生成客户端订阅链接。</p>
                                 </div>
                                 <div>
                                     <label for="vless_short_id" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">Short ID (sing-box generate rand 8 --hex)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
-                                        <input type="text" id="vless_short_id" name="vless_short_id" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 Short ID">
-                                        <button type="button" id="generate-vless-short-id" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 Short ID">
+                                        <input type="text" id="vless_short_id" name="vless_short_id" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成 Short ID (8位十六进制)">
+                                        <button type="button" id="generate-vless-short-id" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机 Short ID (8位十六进制)">
                                             <i class="fas fa-dice"></i>
                                         </button>
                                     </div>
@@ -237,10 +269,10 @@
 
                             <div id="trojan-fields" class="space-y-4 hidden">
                                 <div>
-                                    <label for="trojan_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成)</label>
+                                    <label for="trojan_password" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">密码 (留空则自动生成 16位字母数字)</label>
                                     <div class="mt-1 relative rounded-md shadow-sm">
                                         <input type="text" id="trojan_password" name="trojan_password" class="block w-full pr-10 rounded-md border-snow-storm-1 dark:border-polar-night-4 focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="自动生成强密码">
-                                        <button type="button" id="generate-trojan-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码">
+                                        <button type="button" id="generate-trojan-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-frost-4 hover:text-frost-3 dark:text-frost-2 dark:hover:text-frost-1 transition duration-150 ease-in-out" title="生成随机密码 (16位字母数字)">
                                             <i class="fas fa-dice"></i>
                                         </button>
                                     </div>
@@ -258,8 +290,8 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="vmess_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (自定义域名)</label>
-                                    <input type="text" id="vmess_server_name" name="vmess_server_name" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: yourdomain.com">
+                                    <label for="vmess_server_name" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器名称 (SNI/Host)</label>
+                                    <input type="text" id="vmess_server_name" name="vmess_server_name" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: yourdomain.com (用于TLS SNI/WS Host)">
                                 </div>
                                 <div>
                                     <label for="vmess_path" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">WebSocket 路径 (自定义路径)</label>
@@ -267,8 +299,19 @@
                                 </div>
                             </div>
 
-                            <div class="pt-4 border-t border-snow-storm-1 dark:border-polar-night-4 space-y-4">
+                             <!-- Common Remark Field for Export Links -->
+                             <div id="remark-field" class="space-y-4">
+                                 <div>
+                                     <!-- Modified label text -->
+                                     <label for="node_remark" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">节点备注</label>
+                                     <input type="text" id="node_remark" name="node_remark" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: 我的服务器">
+                                 </div>
+                             </div>
+
+
+                            <div id="cert-key-fields" class="pt-4 border-t border-snow-storm-1 dark:border-polar-night-4 space-y-4">
                                 <h3 class="text-base font-medium text-polar-night-1 dark:text-snow-storm-3">TLS 设置</h3>
+                                <!-- VLESS Reality doesn't use these directly for handshake, but they are still in the config -->
                                 <div>
                                     <label for="certificate_path" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">证书路径</label>
                                     <input type="text" id="certificate_path" name="certificate_path" value="/home/ssl/public.pem" required class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out">
@@ -285,16 +328,20 @@
                 <!-- Right Column: JSON Output -->
                 <div class="lg:w-1/2 space-y-6 fade-in" style="animation-delay: 0.1s;">
                     <section class="bg-snow-storm-2 dark:bg-polar-night-2 rounded-lg shadow-md p-6 h-full flex flex-col transition duration-150 ease-in-out hover:shadow-lg dark:hover:border dark:border-transparent dark:hover:border-frost-2/30">
-                        <div class="flex justify-between items-center mb-4 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2 gap-x-4">
-                            <h2 class="text-lg font-semibold text-polar-night-1 dark:text-snow-storm-3">3. 生成的配置 (JSON)</h2>
-                            <div class="flex gap-x-2">
+                        <div class="flex justify-between items-center mb-4 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2 gap-x-4 flex-wrap">
+                            <h2 class="text-lg font-semibold text-polar-night-1 dark:text-snow-storm-3 mb-2 sm:mb-0">3. 生成的配置 (JSON)</h2>
+                            <div class="flex gap-x-2 flex-wrap justify-end">
+                                <button id="export-button" class="px-3 py-1.5 text-sm font-medium text-snow-storm-3 dark:text-polar-night-1 bg-frost-1 hover:bg-frost-1/80 dark:bg-frost-1 dark:hover:bg-frost-1/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-frost-1 dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
+                                    <i class="fas fa-share-square mr-1"></i> <!-- Icon matched to Image 1 -->
+                                    <span>分享</span> <!-- Modified text -->
+                                </button>
                                 <button id="copy-button" class="px-3 py-1.5 text-sm font-medium text-snow-storm-3 dark:text-polar-night-1 bg-frost-4 hover:bg-frost-3 dark:bg-frost-2 dark:hover:bg-frost-1 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-frost-4 dark:focus:ring-frost-2 dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
-                                    <i class="fas fa-copy"></i>
-                                    <span>复制</span>
+                                    <i class="fas fa-copy mr-1"></i> <!-- Icon matched to Image 1 -->
+                                    <span>复制</span> <!-- Modified text -->
                                 </button>
                                 <button id="download-button" class="px-3 py-1.5 text-sm font-medium text-polar-night-1 dark:text-polar-night-1 bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-aurora-green dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
-                                    <i class="fas fa-download"></i>
-                                    <span>下载</span>
+                                    <i class="fas fa-download mr-1"></i> <!-- Icon matched to Image 1 -->
+                                    <span>下载</span> <!-- Modified text -->
                                 </button>
                             </div>
                         </div>
@@ -314,6 +361,47 @@
         </footer>
     </div>
 
+    <!-- Export Modal Structure -->
+    <div id="export-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-snow-storm-3 dark:bg-polar-night-2 rounded-lg shadow-xl p-6 w-full max-w-2xl relative transform transition-all sm:align-middle sm:max-w-lg">
+            <button id="close-modal" class="absolute top-4 right-4 text-polar-night-4 dark:text-snow-storm-1 hover:text-polar-night-2 dark:hover:text-snow-storm-2 transition duration-150 ease-in-out">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <h3 class="text-xl font-semibold mb-4 text-polar-night-1 dark:text-snow-storm-3 border-b border-snow-storm-1 dark:border-polar-night-4 pb-2">导出连接与二维码</h3>
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="flex-1 space-y-3">
+                    <div>
+                        <!-- Modified label text -->
+                        <label for="export-domain-ip" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">服务器域名或IP</label>
+                        <input type="text" id="export-domain-ip" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out" placeholder="例如: example.com 或 1.2.3.4">
+                    </div>
+                    <div>
+                        <label for="export-link" class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-1">连接字符串 (可编辑)</label>
+                        <textarea id="export-link" rows="6" class="mt-1 block w-full rounded-md border-snow-storm-1 dark:border-polar-night-4 shadow-sm focus:border-frost-4 dark:focus:border-frost-2 focus:ring focus:ring-frost-4/50 dark:focus:ring-frost-2/50 focus:ring-opacity-50 bg-snow-storm-3 dark:bg-polar-night-3 text-polar-night-1 dark:text-snow-storm-3 transition duration-150 ease-in-out font-mono text-sm" placeholder="选择协议并填写配置后点击导出"></textarea>
+                    </div>
+                    <div class="flex gap-3 justify-end">
+                         <button id="update-export-qrcode" class="px-3 py-1.5 text-sm font-medium text-snow-storm-3 dark:text-polar-night-1 bg-aurora-orange hover:bg-aurora-orange/80 dark:bg-aurora-orange dark:hover:bg-aurora-orange/90 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-aurora-orange dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
+                            <i class="fas fa-sync-alt mr-1"></i>
+                            <span>更新二维码</span>
+                         </button>
+                        <button id="copy-export-link" class="px-3 py-1.5 text-sm font-medium text-snow-storm-3 dark:text-polar-night-1 bg-frost-4 hover:bg-frost-3 dark:bg-frost-2 dark:hover:bg-frost-1 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-frost-4 dark:focus:ring-frost-2 dark:focus:ring-offset-polar-night-2 transition duration-150 ease-in-out hover:scale-105 flex items-center space-x-1 whitespace-nowrap">
+                            <i class="fas fa-copy mr-1"></i>
+                            <span>复制连接</span>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Right column for QR Code - Removed background and adjusted padding -->
+                <div class="flex-shrink-0 w-full md:w-48 flex flex-col items-center justify-center p-4"> <!-- Removed bg-snow-storm-1 dark:bg-polar-night-3 and rounded-md -->
+                     <label class="block text-sm font-medium text-polar-night-2 dark:text-snow-storm-1 mb-2">二维码</label>
+                    <div id="export-qrcode-container" class="w-48 h-48 flex items-center justify-center overflow-hidden">
+                        <!-- QR code will be generated here -->
+                    </div>
+                    <p id="qrcode-error" class="text-aurora-red text-xs mt-2 text-center hidden"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- UTILITY FUNCTIONS ---
         function generateUUID() {
@@ -331,14 +419,28 @@
                 return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
             });
         }
-        function generateStrongPassword(length = 16) {
-            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+        // Generates an alphanumeric password (for Trojan)
+        function generateAlphanumericPassword(length = 16) {
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             let password = "";
-            for (let i = 0, n = charset.length; i < length; ++i) {
-                password += charset.charAt(Math.floor(Math.random() * n));
+            for (let i = 0; i < length; ++i) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
             }
             return password;
         }
+
+         // Generates a hex string (for VLESS Reality Short ID)
+        function generateHexString(length = 8) {
+            const charset = "0123456789abcdef";
+            let hexString = "";
+            for (let i = 0; i < length; ++i) {
+                hexString += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            return hexString;
+        }
+
+
         function syntaxHighlight(json) {
             if (typeof json != 'string') {
                  json = JSON.stringify(json, undefined, 2);
@@ -363,35 +465,69 @@
         const jsonOutput = document.getElementById('json-output');
         const copyButton = document.getElementById('copy-button');
         const downloadButton = document.getElementById('download-button');
+        const exportButton = document.getElementById('export-button'); // Export button
         const themeToggleButton = document.getElementById('theme-toggle');
         const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
         const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
         const currentYearSpan = document.getElementById('current-year');
+
+        // Protocol-specific field groups
         const hy2Fields = document.getElementById('hysteria2-fields');
         const tuicFields = document.getElementById('tuic-fields');
         const anytlsFields = document.getElementById('anytls-fields');
         const vlessRealityFields = document.getElementById('vless-reality-fields');
         const trojanFields = document.getElementById('trojan-fields');
         const vmessFields = document.getElementById('vmess-fields');
+        const certKeyFields = document.getElementById('cert-key-fields'); // Group standard TLS fields
+
+        // Common fields
         const listenPortInput = document.getElementById('listen_port');
+        const nodeRemarkInput = document.getElementById('node_remark'); // Node Remark field
         const certPathInput = document.getElementById('certificate_path');
         const keyPathInput = document.getElementById('key_path');
+
+        // Hysteria2 fields
         const hy2PasswordInput = document.getElementById('hy2_password');
+
+        // TUIC fields
         const tuicUuidInput = document.getElementById('tuic_uuid');
         const tuicPasswordInput = document.getElementById('tuic_password');
+
+        // AnyTLS fields
         const anytlsPasswordInput = document.getElementById('anytls_password');
         const anytlsServerNameInput = document.getElementById('anytls_server_name');
+
+        // VLESS Reality fields
         const vlessUuidInput = document.getElementById('vless_uuid');
-        const vlessServerNameInput = document.getElementById('vless_server_name');
+        const vlessServerNameInput = document.getElementById('vless_server_name'); // SNI
         const vlessPrivateKeyInput = document.getElementById('vless_private_key');
         const vlessShortIdInput = document.getElementById('vless_short_id');
+        const vlessPublicKeyField = document.getElementById('vless-public-key-field'); // Public key field group
+        const vlessPublicKeyInput = document.getElementById('vless_public_key'); // Public key input
+
+        // Trojan fields
         const trojanPasswordInput = document.getElementById('trojan_password');
+
+        // VMess fields
         const vmessUuidInput = document.getElementById('vmess_uuid');
-        const vmessServerNameInput = document.getElementById('vmess_server_name');
+        const vmessServerNameInput = document.getElementById('vmess_server_name'); // SNI/Host
         const vmessPathInput = document.getElementById('vmess_path');
+
+
+        // Modal Elements
+        const exportModal = document.getElementById('export-modal');
+        const closeModalButton = document.getElementById('close-modal');
+        const exportDomainIpInput = document.getElementById('export-domain-ip');
+        const exportLinkTextarea = document.getElementById('export-link');
+        const exportQrcodeContainer = document.getElementById('export-qrcode-container'); // Target div for QR code
+        const copyExportLinkButton = document.getElementById('copy-export-link');
+        const updateExportQrcodeButton = document.getElementById('update-export-qrcode'); // Button to manually update QR
+        const qrcodeError = document.getElementById('qrcode-error');
+
 
         // --- GLOBAL STATE ---
         let currentConfig = {};
+        let qrcodeInstance = null; // To store the QR code object
 
         // --- THEME TOGGLE LOGIC ---
         const updateThemeIcons = () => {
@@ -408,24 +544,55 @@
             document.documentElement.classList.toggle('dark');
             localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
             updateThemeIcons();
+             // Re-generate QR code in modal if open to update colors
+             if (!exportModal.classList.contains('hidden')) {
+                 // Use a small delay to allow theme transition colors to settle
+                 setTimeout(() => {
+                     generateQrCode(exportLinkTextarea.value);
+                 }, 100);
+             }
         });
 
-        // --- FORM LOGIC ---
+        // --- FORM & CONFIG LOGIC ---
+
+        // Controls which protocol fields are visible
         function updateFormVisibility() {
             const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+            // Hide all protocol specific fields first
             hy2Fields.classList.add('hidden');
             tuicFields.classList.add('hidden');
             anytlsFields.classList.add('hidden');
             vlessRealityFields.classList.add('hidden');
             trojanFields.classList.add('hidden');
             vmessFields.classList.add('hidden');
-            if (selectedProtocol === 'hysteria2') hy2Fields.classList.remove('hidden');
-            else if (selectedProtocol === 'tuic') tuicFields.classList.remove('hidden');
-            else if (selectedProtocol === 'anytls') anytlsFields.classList.remove('hidden');
-            else if (selectedProtocol === 'vless-reality') vlessRealityFields.classList.remove('hidden');
-            else if (selectedProtocol === 'trojan') trojanFields.classList.remove('hidden');
-            else if (selectedProtocol === 'vmess') vmessFields.classList.remove('hidden');
+            certKeyFields.classList.remove('hidden'); // Show standard TLS by default
+            vlessPublicKeyField.classList.add('hidden'); // Hide Reality public key by default
+
+            // Show fields for the selected protocol
+            if (selectedProtocol === 'hysteria2') {
+                hy2Fields.classList.remove('hidden');
+            } else if (selectedProtocol === 'tuic') {
+                tuicFields.classList.remove('hidden');
+            } else if (selectedProtocol === 'anytls') {
+                anytlsFields.classList.remove('hidden');
+            } else if (selectedProtocol === 'vless-reality') {
+                 vlessRealityFields.classList.remove('hidden');
+                 certKeyFields.classList.add('hidden'); // Hide standard TLS fields for Reality
+                 vlessPublicKeyField.classList.remove('hidden'); // Show Public Key field for export link
+            }
+            else if (selectedProtocol === 'trojan') {
+                trojanFields.classList.remove('hidden');
+            }
+            else if (selectedProtocol === 'vmess') {
+                vmessFields.classList.remove('hidden');
+            }
+
+            // Ensure the remark field is always visible as it's common for export links
+            // remarkField is not a div, but nodeRemarkInput is. It's inside another div.
+            // No need to hide/show the remark field itself, it's always part of the form.
         }
+
+        // Generates the Sing-box JSON configuration
         function generateConfig() {
             const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
             const port = parseInt(listenPortInput.value) || 443;
@@ -437,29 +604,40 @@
                 if (selectedProtocol === 'hysteria2') {
                     const upMbps = parseInt(document.getElementById('hy2_up_mbps').value) || 50;
                     const downMbps = parseInt(document.getElementById('hy2_down_mbps').value) || 200;
-                    const password = hy2PasswordInput.value || generateUUID();
-                    if (!hy2PasswordInput.value) hy2PasswordInput.value = password;
+                    const password = hy2PasswordInput.value || generateUUID(); // HY2 password is UUID
+                    if (!hy2PasswordInput.value) hy2PasswordInput.value = password; // Update input if auto-generated
                     config = { inbounds: [ { type: "hysteria2", listen: "::", listen_port: port, up_mbps: upMbps, down_mbps: downMbps, users: [ { password: password } ], tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'tuic') {
                     const uuid = tuicUuidInput.value || generateUUID();
-                    const password = tuicPasswordInput.value || generateStrongPassword();
-                    if (!tuicUuidInput.value) tuicUuidInput.value = uuid;
-                    if (!tuicPasswordInput.value) tuicPasswordInput.value = password;
+                    const password = tuicPasswordInput.value || generateUUID(); // TUIC password is UUID v5
+                    if (!tuicUuidInput.value) tuicUuidInput.value = uuid; // Update input if auto-generated
+                    if (!tuicPasswordInput.value) tuicPasswordInput.value = password; // Update input if auto-generated
                     config = { inbounds: [ { type: "tuic", listen: "::", listen_port: port, users: [ { uuid: uuid, password: password } ], congestion_control: "bbr", tls: { enabled: true, alpn: ["h3"], certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'anytls') {
-                    const serverName = anytlsServerNameInput.value || 'yourdomain.com';
-                    const password = anytlsPasswordInput.value || generateUUID();
-                    if (!anytlsServerNameInput.value) anytlsServerNameInput.value = serverName;
-                    if (!anytlsPasswordInput.value) anytlsPasswordInput.value = password;
+                    const serverName = anytlsServerNameInput.value || 'yourdomain.com'; // Used for peer in client link, server_name in config
+                    const password = anytlsPasswordInput.value || generateUUID(); // AnyTLS password is UUID
+                    if (!anytlsServerNameInput.value) anytlsServerNameInput.value = serverName; // Update input if auto-generated (less likely for server name)
+                    if (!anytlsPasswordInput.value) anytlsPasswordInput.value = password; // Update input if auto-generated
                     config = { inbounds: [ { type: "anytls", listen: "::", listen_port: port, users: [ { password: password } ], tls: { enabled: true, server_name: serverName, certificate_path: certPath, key_path: keyPath } } ] };
                 } else if (selectedProtocol === 'vless-reality') {
                     const uuid = vlessUuidInput.value || generateUUID();
                     const serverName = vlessServerNameInput.value || 'www.icloud.com';
-                    const privateKey = vlessPrivateKeyInput.value || generateStrongPassword(43); // 模拟生成私钥，实际应使用 sing-box generate reality-keypair
-                    const shortId = vlessShortIdInput.value || generateStrongPassword(8).toLowerCase().replace(/[^0-9a-f]/g, ''); // 模拟生成 Short ID
-                    if (!vlessUuidInput.value) vlessUuidInput.value = uuid;
-                    if (!vlessPrivateKeyInput.value) vlessPrivateKeyInput.value = privateKey;
-                    if (!vlessShortIdInput.value) vlessShortIdInput.value = shortId;
+                    const privateKey = vlessPrivateKeyInput.value.trim(); // Don't auto-generate private key
+                    const shortId = vlessShortIdInput.value || generateHexString(8).toLowerCase(); // 8-char hex
+
+                    if (!vlessUuidInput.value) vlessUuidInput.value = uuid; // Update input if auto-generated
+                     if (!vlessShortIdInput.value) vlessShortIdInput.value = shortId; // Update input if auto-generated
+
+
+                    // Basic validation for Reality fields needed for config
+                    if (!privateKey) {
+                         throw new Error("Reality 私钥不能为空。");
+                    }
+                     // Short ID is required by Reality
+                    if (!shortId) {
+                        throw new Error("Reality Short ID 不能为空。");
+                    }
+
                     config = {
                         inbounds: [{
                             type: "vless",
@@ -468,12 +646,12 @@
                             users: [{ uuid: uuid, flow: "xtls-rprx-vision" }],
                             tls: {
                                 enabled: true,
-                                server_name: serverName,
+                                server_name: serverName, // SNI
                                 reality: {
                                     enabled: true,
                                     handshake: {
-                                        server: serverName,
-                                        server_port: 443
+                                        server: serverName, // Target server for handshake
+                                        server_port: 443 // Target server port for handshake
                                     },
                                     private_key: privateKey,
                                     short_id: [shortId]
@@ -482,8 +660,8 @@
                         }]
                     };
                 } else if (selectedProtocol === 'trojan') {
-                    const password = trojanPasswordInput.value || generateStrongPassword();
-                    if (!trojanPasswordInput.value) trojanPasswordInput.value = password;
+                    const password = trojanPasswordInput.value || generateAlphanumericPassword(16); // Trojan password is 16-char alphanumeric
+                    if (!trojanPasswordInput.value) trojanPasswordInput.value = password; // Update input if auto-generated
                     config = {
                         inbounds: [{
                             type: "trojan",
@@ -502,9 +680,11 @@
                     };
                 } else if (selectedProtocol === 'vmess') {
                     const uuid = vmessUuidInput.value || generateUUID();
-                    const serverName = vmessServerNameInput.value || '';
+                    const serverName = vmessServerNameInput.value.trim(); // SNI/Host
                     const path = vmessPathInput.value || '/ws';
-                    if (!vmessUuidInput.value) vmessUuidInput.value = uuid;
+                    if (!vmessUuidInput.value) vmessUuidInput.value = uuid; // Update input if auto-generated
+
+                    // VMess config uses the values directly
                     config = {
                         inbounds: [{
                             type: "vmess",
@@ -517,8 +697,8 @@
                                 path: path
                             },
                             tls: {
-                                enabled: true,
-                                server_name: serverName,
+                                enabled: true, // Assuming TLS for VMess WS export link
+                                server_name: serverName, // SNI for WebSocket+TLS
                                 certificate_path: certPath,
                                 key_path: keyPath
                             }
@@ -526,31 +706,302 @@
                     };
                 }
                 currentConfig = config;
+                // console.log('Generated Config:', currentConfig); // Debugging log
                 jsonOutput.innerHTML = syntaxHighlight(currentConfig);
-                jsonOutput.classList.remove('text-aurora-red'); // Use specific error color if needed
+                // console.log('Set JSON output HTML'); // Debugging log
+                jsonOutput.classList.remove('text-aurora-red'); // Clear previous error styling
+                jsonOutput.parentElement.classList.remove('bg-aurora-red/20');
+                 exportButton.disabled = false; // Enable export button
             } catch (error) {
                 console.error("Error generating config:", error);
-                currentConfig = {};
+                currentConfig = {}; // Clear invalid config
                 jsonOutput.textContent = `配置生成错误: ${error.message}`;
                 jsonOutput.classList.add('text-aurora-red'); // Use Aurora Red for errors
+                 jsonOutput.parentElement.classList.add('bg-aurora-red/20'); // Add error background
+                 exportButton.disabled = true; // Disable export on error
             }
             return currentConfig;
         }
 
+        // --- EXPORT MODAL LOGIC ---
+
+         // Function to generate the QR code from a given text
+         function generateQrCode(text) {
+              // console.log("Attempting to generate QR code for:", text);
+              // Clear previous QR code first
+              if (qrcodeInstance) {
+                   // console.log("Clearing existing QR code instance.");
+                   try { qrcodeInstance.clear(); } catch(e) { console.warn("Error clearing qrcode instance:", e); }
+               }
+              exportQrcodeContainer.innerHTML = ''; // Clear the DOM element content
+              qrcodeInstance = null; // Reset instance variable
+              // console.log("Container cleared.");
+
+              if (!text || text.includes("请先输入") || text.includes("暂未支持") || text.trim() === "") { // Handle placeholder/error texts and empty string
+                  // console.log("Invalid or empty text for QR code:", text);
+                  qrcodeError.classList.remove('hidden');
+                  qrcodeError.textContent = text.trim() === "" ? "连接字符串为空" : text;
+                  return;
+              }
+
+              try {
+                   // Get colors from CSS variables defined in :root and .dark:root
+                   // Need to get the computed style of the root element (<html>)
+                   const htmlElement = document.documentElement;
+                   const computedStyle = getComputedStyle(htmlElement);
+
+                  // Get the *effective* colors based on the current theme
+                   // Using getPropertyValue with a fallback for safety
+                   const foreColor = computedStyle.getPropertyValue('--qrcode-dark').trim() || '#2e3440'; // Fallback polar-night-1
+                   const backColor = computedStyle.getPropertyValue('--qrcode-light').trim() || '#eceff4'; // Fallback snow-storm-3/polar-night-2
+
+
+                  // console.log('Using Foreground Color:', foreColor, 'Using Background Color:', backColor);
+
+                   // Adjusted size to match the w-48 h-48 Tailwind class (192px) for better layout
+                  qrcodeInstance = new QRCode(exportQrcodeContainer, {
+                      text: text,
+                      width: 192, // Adjusted from 176 to 192
+                      height: 192, // Adjusted from 176 to 192
+                       // Adjust colors based on theme
+                      colorDark : foreColor, // Foreground color
+                      colorLight : backColor, // Background color
+                      correctLevel : QRCode.CorrectLevel.H // Higher correction level
+                  });
+                   // console.log('QR code instance created.');
+
+                  // Check if QR code element was actually created inside the container
+                  if (exportQrcodeContainer.children.length === 0) {
+                       console.error("QR code library did not create an element inside the container.");
+                       throw new Error("QR code element not created.");
+                   }
+
+                  qrcodeError.classList.add('hidden'); // Hide error if successful
+                  // console.log('QR code generated successfully.');
+              } catch (e) {
+                  console.error("Error generating QR code:", e); // Log the error details
+                   // Ensure cleanup on error
+                   if (qrcodeInstance) {
+                       try { qrcodeInstance.clear(); } catch(ce) { console.warn("Error clearing qrcode instance on error:", ce); }
+                   }
+                    exportQrcodeContainer.innerHTML = '';
+                    qrcodeInstance = null;
+
+                  qrcodeError.classList.remove('hidden');
+                  qrcodeError.textContent = `生成二维码失败: ${e.message || e}`; // Show basic error message
+              }
+         }
+
+        // Function to generate the standard export link based on current config and modal inputs
+        function generateExportLink() {
+             const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+             const domainIp = exportDomainIpInput.value.trim();
+             const port = listenPortInput.value; // Get port from main form
+             const remark = nodeRemarkInput.value.trim() || `Singbox_${selectedProtocol}_${port}`; // Get remark from main form, default if empty
+             const encodedRemark = encodeURIComponent(remark);
+
+
+             if (!currentConfig || Object.keys(currentConfig).length === 0 || !currentConfig.inbounds || currentConfig.inbounds.length === 0) {
+                 const msg = "无 Sing-box 配置数据，无法生成链接。";
+                 exportLinkTextarea.value = msg;
+                 generateQrCode(msg); // Pass error message to QR generator
+                 return "";
+             }
+
+             const inbound = currentConfig.inbounds[0];
+             let link = "";
+             let errorMsg = "";
+
+
+             // Check if domain/IP is provided for protocols that need it in the link
+             const needsDomainIp = ['hysteria2', 'tuic', 'anytls', 'vless-reality', 'trojan', 'vmess'];
+             if (needsDomainIp.includes(selectedProtocol) && !domainIp) {
+                  errorMsg = "请先输入服务器域名或IP!";
+             } else {
+                 const encodedDomainIp = encodeURIComponent(domainIp); // Encode modal domain/IP
+
+                 try {
+                     if (selectedProtocol === 'hysteria2') {
+                         const password = inbound.users[0]?.password;
+                         if (!password) throw new Error("HY2 密码缺失");
+                          link = `hysteria2://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?alpn=h3&insecure=1#${encodedRemark}`;
+
+                     } else if (selectedProtocol === 'tuic') {
+                         const uuid = inbound.users[0]?.uuid;
+                         const password = inbound.users[0]?.password;
+                         if (!uuid || !password) throw new Error("TUIC UUID 或密码缺失");
+                          // Use the port from the main form
+                         link = `tuic://${encodeURIComponent(uuid)}:${encodeURIComponent(password)}@${encodedDomainIp}:${port}?alpn=h3&allow_insecure=1&congestion_control=bbr#${encodedRemark}`;
+
+                     } else if (selectedProtocol === 'anytls') {
+                         const password = inbound.users[0]?.password;
+                         const peer = inbound.tls?.server_name; // peer in link comes from server_name in config
+                         if (!password || !peer) throw new Error("AnyTLS 密码或服务器名称缺失");
+                          // Use the port from the main form
+                         link = `anytls://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?peer=${encodeURIComponent(peer)}&udp=1#${encodedRemark}`;
+
+                     } else if (selectedProtocol === 'vless-reality') {
+                          const uuid = inbound.users[0]?.uuid;
+                          const sni = inbound.tls?.server_name; // SNI comes from server_name in config
+                          const publicKey = vlessPublicKeyInput.value.trim(); // Public key is from the separate input field
+                          const shortId = inbound.tls?.reality?.short_id?.[0]; // Short ID from config array
+
+                          if (!uuid || !sni || !publicKey || !shortId) {
+                              const missing = [];
+                              if (!uuid) missing.push("UUID");
+                              if (!sni) missing.push("SNI");
+                              if (!publicKey) missing.push("公钥 (用于导出)"); // Emphasize public key is needed for link
+                              if (!shortId) missing.push("Short ID");
+                              throw new Error(`VLESS Reality 缺少必要信息: ${missing.join(', ')}`);
+                          }
+
+                          // Use the port from the main form
+                          // Note: fp=chrome is common but not strictly required by Sing-box config, added to link as per user template
+                          link = `vless://${encodeURIComponent(uuid)}@${encodedDomainIp}:${port}?encryption=none&security=reality&flow=xtls-rprx-vision&type=tcp&sni=${encodeURIComponent(sni)}&pbk=${encodeURIComponent(publicKey)}&sid=${encodeURIComponent(shortId)}&fp=chrome#${encodedRemark}`;
+
+
+                     } else if (selectedProtocol === 'trojan') {
+                         const password = inbound.users[0]?.password;
+                         if (!password) throw new Error("Trojan 密码缺失");
+                         // Use the port from the main form
+                         link = `trojan://${encodeURIComponent(password)}@${encodedDomainIp}:${port}?type=tcp&security=tls&allowInsecure=1#${encodedRemark}`;
+
+                     } else if (selectedProtocol === 'vmess') {
+                         const uuid = inbound.users[0]?.uuid;
+                         const path = inbound.transport?.path || '/ws';
+                         const serverName = inbound.tls?.server_name; // SNI/Host from config
+                         // Note: VMess link JSON uses 'add', 'host', 'sni' fields.
+                         // 'add' is the server address (from modal domain/IP)
+                         // 'host' is the WS Host header (from config serverName)
+                         // 'sni' is the TLS SNI (from config serverName)
+
+                         if (!uuid) throw new Error("VMess UUID 缺失");
+                         // serverName might be optional for some VMess configs, but required for WS+TLS link often.
+                         // If serverName is empty in config, use the modal domain/IP for host/sni in the link JSON.
+                         const linkHost = serverName || domainIp; // Use config serverName if present, else modal domain/IP
+                         const linkSni = serverName || domainIp; // Use config serverName if present, else modal domain/IP
+
+
+                         const vmessLinkJson = {
+                             v: "2",
+                             ps: remark, // Use remark for 'ps' field in link JSON
+                             add: domainIp, // Server address comes from the modal input
+                             port: String(port), // Port from main form (as string)
+                             id: uuid,
+                             aid: "0", // AlterId is 0 in the config
+                             scy: "auto", // Security crypto
+                             net: "ws", // Network type
+                             type: "", // Transport type (often empty for ws)
+                             host: linkHost, // WS Host header
+                             path: path, // WS path
+                             tls: "tls", // TLS enabled
+                             sni: linkSni, // TLS SNI
+                             alpn: "", // Optional ALPN
+                             fp: "" // Optional fingerprint
+                         };
+
+                         const vmessJsonString = JSON.stringify(vmessLinkJson);
+                         // Base64 encode the JSON string
+                         try {
+                            link = `vmess://${btoa(vmessJsonString)}`;
+                         } catch (e) {
+                             throw new Error("Base64 编码失败: " + e.message);
+                         }
+
+
+                     } else {
+                          errorMsg = `当前协议 (${selectedProtocol}) 暂不支持生成标准订阅链接。`;
+                     }
+                 } catch (e) {
+                     console.error("Error generating export link:", e);
+                     errorMsg = `生成链接错误: ${e.message}`;
+                 }
+             }
+
+
+             if (errorMsg) {
+                  exportLinkTextarea.value = errorMsg;
+                  generateQrCode(errorMsg); // Pass error message to QR generator
+                  return ""; // Return empty string on error
+             } else {
+                  exportLinkTextarea.value = link; // Set the generated link
+                  generateQrCode(link); // Generate QR code from the generated link
+                  return link; // Return the generated link
+             }
+        }
+
+
+        function showExportModal() {
+            // Ensure currentConfig is up-to-date before opening modal
+            generateConfig();
+
+            const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
+
+            // Clear previous state
+             if (qrcodeInstance) {
+                 qrcodeInstance.clear();
+             }
+            exportQrcodeContainer.innerHTML = '';
+            qrcodeInstance = null; // Reset instance variable
+            exportLinkTextarea.value = '';
+            exportDomainIpInput.value = ''; // Clear domain/IP input in modal
+            qrcodeError.classList.add('hidden');
+
+
+            // Attempt to generate link for supported protocols immediately upon opening
+            const supportedProtocols = ['hysteria2', 'tuic', 'anytls', 'vless-reality', 'trojan', 'vmess']; // Add all supported protocols here
+
+            if (supportedProtocols.includes(selectedProtocol)) {
+                 exportModal.classList.remove('hidden');
+                 exportDomainIpInput.focus(); // Focus domain/IP input
+                 // Prompt user to enter Domain/IP and generate link/QR
+                 exportLinkTextarea.value = "请先输入服务器域名或IP!";
+                 generateQrCode(''); // Clear/hide QR initially
+                 qrcodeError.classList.remove('hidden');
+                 qrcodeError.textContent = "请先输入服务器域名或IP!";
+            } else {
+                 // Protocol not supported for direct link export yet
+                 alert(`当前协议 (${selectedProtocol}) 暂不支持生成标准订阅链接。`);
+                 // Keep modal hidden and don't proceed
+                 exportModal.classList.add('hidden');
+                 return; // Exit function
+            }
+        }
+
+        function hideExportModal() {
+            exportModal.classList.add('hidden');
+             // Clear content when closing
+             if (qrcodeInstance) {
+                 qrcodeInstance.clear();
+             }
+            exportQrcodeContainer.innerHTML = '';
+            qrcodeInstance = null; // Reset instance variable
+
+            exportLinkTextarea.value = '';
+            exportDomainIpInput.value = '';
+            qrcodeError.classList.add('hidden');
+        }
+
+
         // --- EVENT LISTENERS ---
         protocolSelector.addEventListener('change', () => { updateFormVisibility(); generateConfig(); });
+        // Listen for input changes on the form to regenerate config
         configForm.addEventListener('input', generateConfig);
+
+        // Password/UUID generation buttons
         document.getElementById('generate-hy2-password').addEventListener('click', () => { hy2PasswordInput.value = generateUUID(); generateConfig(); });
         document.getElementById('generate-tuic-uuid').addEventListener('click', () => { tuicUuidInput.value = generateUUID(); generateConfig(); });
-        document.getElementById('generate-tuic-password').addEventListener('click', () => { tuicPasswordInput.value = generateStrongPassword(); generateConfig(); });
+        document.getElementById('generate-tuic-password').addEventListener('click', () => { tuicPasswordInput.value = generateUUID(); generateConfig(); }); // TUIC password is now UUID
         document.getElementById('generate-anytls-password').addEventListener('click', () => { anytlsPasswordInput.value = generateUUID(); generateConfig(); });
         document.getElementById('generate-vless-uuid').addEventListener('click', () => { vlessUuidInput.value = generateUUID(); generateConfig(); });
-        document.getElementById('generate-vless-keypair').addEventListener('click', () => { vlessPrivateKeyInput.value = generateStrongPassword(43); generateConfig(); });
-        document.getElementById('generate-vless-short-id').addEventListener('click', () => { vlessShortIdInput.value = generateStrongPassword(8).toLowerCase().replace(/[^0-9a-f]/g, ''); generateConfig(); });
-        document.getElementById('generate-trojan-password').addEventListener('click', () => { trojanPasswordInput.value = generateStrongPassword(); generateConfig(); });
+         // Note: Cannot reliably generate keypair in JS. Short ID generation is hex.
+        // document.getElementById('generate-vless-keypair').addEventListener('click', () => { /* Logic needed if implemented */ });
+        document.getElementById('generate-vless-short-id').addEventListener('click', () => { vlessShortIdInput.value = generateHexString(8).toLowerCase(); generateConfig(); });
+        document.getElementById('generate-trojan-password').addEventListener('click', () => { trojanPasswordInput.value = generateAlphanumericPassword(16); generateConfig(); }); // Trojan password is 16-char alphanumeric
         document.getElementById('generate-vmess-uuid').addEventListener('click', () => { vmessUuidInput.value = generateUUID(); generateConfig(); });
 
-        // Copy Button Listener
+
+        // Copy JSON Button Listener
         copyButton.addEventListener('click', () => {
             const configText = JSON.stringify(currentConfig, null, 2);
             if (!configText || configText === '{}') { alert('没有可复制的配置。'); return; }
@@ -558,21 +1009,23 @@
                 const originalHTML = copyButton.innerHTML;
                 const originalClasses = copyButton.className;
                 copyButton.innerHTML = '<i class="fas fa-check mr-1"></i> 已复制!';
-                copyButton.className = originalClasses.replace(/bg-frost-\d+|hover:bg-frost-\d+|dark:bg-frost-\d+|dark:hover:bg-frost-\d+/g, '') + ' bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 text-polar-night-1 dark:text-polar-night-1';
+                 // Temporarily change color to green
+                 copyButton.className = originalClasses.replace(/bg-frost-\d+|hover:bg-frost-\d+|dark:bg-frost-\d+|dark:hover:bg-frost-\d+/g, '') + ' bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 text-polar-night-1 dark:text-polar-night-1';
                 setTimeout(() => {
                     copyButton.innerHTML = originalHTML;
-                    copyButton.className = originalClasses;
+                    copyButton.className = originalClasses; // Restore original classes
                 }, 2000);
             }).catch(err => { console.error('无法复制文本: ', err); alert('复制失败! 请手动复制。'); });
         });
 
-        // Download Button Listener
+        // Download JSON Button Listener
         downloadButton.addEventListener('click', () => {
             const configToDownload = currentConfig;
             const configText = JSON.stringify(configToDownload, null, 2);
             if (!configText || configText === '{}') { alert('没有可下载的配置。'); return; }
             const selectedProtocol = document.querySelector('input[name="protocol"]:checked').value;
             const port = listenPortInput.value || 'port';
+             // Changed filename format as requested: protocol-port.json
             const filename = `${selectedProtocol}-${port}.json`;
             const blob = new Blob([configText], { type: 'application/json;charset=utf-8;' });
             const link = document.createElement("a");
@@ -584,16 +1037,72 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(url); // Clean up
             } else { alert('您的浏览器不支持自动下载。请手动复制配置。'); }
         });
+
+        // --- Export Modal Event Listeners ---
+        exportButton.addEventListener('click', showExportModal);
+        closeModalButton.addEventListener('click', hideExportModal);
+        // Close modal when clicking outside the content box
+        exportModal.addEventListener('click', (e) => {
+            if (e.target === exportModal) {
+                hideExportModal();
+            }
+        });
+
+        // Automatically generate link/QR when domain/IP input changes in modal
+        exportDomainIpInput.addEventListener('input', generateExportLink);
+
+        // Update QR code when "Update QR Code" button is clicked (uses current textarea content)
+        updateExportQrcodeButton.addEventListener('click', () => {
+            const linkToEncode = exportLinkTextarea.value;
+             if (!linkToEncode || linkToEncode.includes("请先输入") || linkToEncode.includes("暂未支持") || linkToEncode.trim() === "") {
+                 // Alert handled by generateQrCode when it receives invalid text
+                 generateQrCode(linkToEncode); // Still call generateQrCode to update state and show error
+                 return;
+             }
+            generateQrCode(linkToEncode); // Generate QR based on current textarea content
+        });
+
+         // Update QR code when the link textarea is edited
+         exportLinkTextarea.addEventListener('input', () => {
+             const linkToEncode = exportLinkTextarea.value;
+             if (!linkToEncode || linkToEncode.includes("请先输入") || linkToEncode.includes("暂未支持") || linkToEncode.trim() === "") {
+                 generateQrCode(linkToEncode); // Show error state for QR
+                 return;
+             }
+             generateQrCode(linkToEncode); // Generate QR based on the new text
+         });
+
+
+         // Copy link from modal textarea
+         copyExportLinkButton.addEventListener('click', () => {
+             const linkText = exportLinkTextarea.value;
+             if (!linkText || linkText.includes("请先输入") || linkText.includes("暂未支持") || linkText.trim() === "") {
+                 alert("没有可复制的连接。");
+                 return;
+             }
+             navigator.clipboard.writeText(linkText).then(() => {
+                 const originalHTML = copyExportLinkButton.innerHTML; // Correct variable name
+                 const originalClasses = copyExportLinkButton.className;
+                 copyExportLinkButton.innerHTML = '<i class="fas fa-check mr-1"></i> 已复制!';
+                  // Temporarily change color to green
+                 copyExportLinkButton.className = originalClasses.replace(/bg-frost-\d+|hover:bg-frost-\d+|dark:bg-frost-\d+|dark:hover:bg-frost-\d+/g, '') + ' bg-aurora-green hover:bg-aurora-green/80 dark:bg-aurora-green dark:hover:bg-aurora-green/90 text-polar-night-1 dark:text-polar-night-1';
+                 setTimeout(() => {
+                     copyExportLinkButton.innerHTML = originalHTML;
+                     copyExportLinkButton.className = originalClasses; // Restore original classes
+                 }, 2000);
+             }).catch(err => { console.error('无法复制文本: ', err); alert('复制失败! 请手动复制。'); });
+         });
+
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             currentYearSpan.textContent = new Date().getFullYear();
-            updateThemeIcons();
-            updateFormVisibility();
-            generateConfig();
+            updateThemeIcons(); // Set initial theme icons
+            updateFormVisibility(); // Show fields for default selected protocol
+            generateConfig(); // Generate initial config on load
         });
     </script>
 </body>
