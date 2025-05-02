@@ -128,7 +128,15 @@ install_sing_box() {
         exit 1
     fi
 
+    # 额外将可执行文件复制到 /usr/local/bin/
+    if ! cp "$temp_dir/extract/sing-box" "/usr/local/bin/"; then
+        print_color $RED "复制文件到 /usr/local/bin/ 失败。"
+        rm -rf "$temp_dir"
+        exit 1
+    fi
+
     chmod +x "$BIN_DIR/sing-box"
+    chmod +x "/usr/local/bin/sing-box"
     if [[ -x "$BIN_DIR/sing-box" ]]; then
         local version=$("$BIN_DIR/sing-box" version 2>/dev/null || echo "无法获取版本信息")
         print_color $GREEN "Sing-box 安装成功！版本信息: $version"
@@ -157,7 +165,6 @@ create_config() {
     "level": "info",
     "output": "/var/log/sing-box.log"
   },
-  "dns": {},
   "outbounds": [
     {
       "type": "direct",
