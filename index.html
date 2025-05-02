@@ -47,19 +47,16 @@
         /* Custom colors for dynamic use in JS (for QR code) */
          /* Define base colors first */
         :root {
-            --polar-night-1: #2e3440;
-            --polar-night-3: #434c5e;
-            --snow-storm-3: #eceff4;
+            --polar-night-1: #2e3440; /* Darkest Nord */
+            --polar-night-2: #3b4252; /* Darker Nord */
+            --snow-storm-3: #eceff4; /* Lightest Nord */
 
-            /* QR code colors for light mode */
-            --qrcode-dark: var(--polar-night-1);   /* Dots color */
-            --qrcode-light: var(--snow-storm-3);  /* Background color - now modal background */
+            /* QR code colors - always dark dots on light background for reliable rendering */
+            --qrcode-dark: var(--polar-night-1);   /* Dots color (Dark Nord) */
+            --qrcode-light: var(--snow-storm-3);  /* Background color (Light Nord) */
         }
-         /* Override QR code colors for dark mode */
-        .dark:root {
-            --qrcode-dark: var(--snow-storm-3);   /* Dots color */
-            --qrcode-light: var(--polar-night-2); /* Background color - now modal background */
-        }
+         /* Removed the override for dark mode QR colors */
+         /* .dark:root { ... } */
 
 
     </style>
@@ -112,7 +109,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
                 <h1 class="text-xl font-semibold text-polar-night-1 dark:text-snow-storm-3">Singbox 配置生成器</h1>
                 <button id="theme-toggle" type="button" class="text-polar-night-4 dark:text-snow-storm-1 hover:bg-snow-storm-1 dark:hover:bg-polar-night-3 focus:outline-none focus:ring-4 focus:ring-frost-3/50 dark:focus:ring-frost-2/50 rounded-lg text-sm p-2.5 transition duration-150 ease-in-out">
-                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
                     <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
                 </button>
             </div>
@@ -547,6 +544,8 @@
              // Re-generate QR code in modal if open to update colors
              if (!exportModal.classList.contains('hidden')) {
                  // Use a small delay to allow theme transition colors to settle
+                 // Note: With the fix (QR colors are theme-independent), this might not be strictly necessary
+                 // for *color* but good practice to regenerate if any style *might* affect it.
                  setTimeout(() => {
                      generateQrCode(exportLinkTextarea.value);
                  }, 100);
@@ -745,16 +744,13 @@
               }
 
               try {
-                   // Get colors from CSS variables defined in :root and .dark:root
-                   // Need to get the computed style of the root element (<html>)
+                   // Get colors from CSS variables defined in :root
+                   // These are now fixed to dark-on-light regardless of theme
                    const htmlElement = document.documentElement;
                    const computedStyle = getComputedStyle(htmlElement);
 
-                  // Get the *effective* colors based on the current theme
-                   // Using getPropertyValue with a fallback for safety
-                   const foreColor = computedStyle.getPropertyValue('--qrcode-dark').trim() || '#2e3440'; // Fallback polar-night-1
-                   const backColor = computedStyle.getPropertyValue('--qrcode-light').trim() || '#eceff4'; // Fallback snow-storm-3/polar-night-2
-
+                   const foreColor = computedStyle.getPropertyValue('--qrcode-dark').trim() || '#2e3440';
+                   const backColor = computedStyle.getPropertyValue('--qrcode-light').trim() || '#eceff4';
 
                   // console.log('Using Foreground Color:', foreColor, 'Using Background Color:', backColor);
 
@@ -763,9 +759,9 @@
                       text: text,
                       width: 192, // Adjusted from 176 to 192
                       height: 192, // Adjusted from 176 to 192
-                       // Adjust colors based on theme
-                      colorDark : foreColor, // Foreground color
-                      colorLight : backColor, // Background color
+                       // Adjust colors based on theme - NOW FIXED TO DARK-ON-LIGHT
+                      colorDark : foreColor, // Foreground color (should be dark)
+                      colorLight : backColor, // Background color (should be light)
                       correctLevel : QRCode.CorrectLevel.H // Higher correction level
                   });
                    // console.log('QR code instance created.');
